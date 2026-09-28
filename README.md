@@ -204,6 +204,29 @@ forwards each turn separately; the lab's branch-packed forward would be 4–5× 
 Density was 0.66–0.81 (threshold 0.20) and F_struct 0.16–0.23 (noise threshold 0.10) across v3. The raw
 files are in `results/training/`.
 
+**v3 training curves** are in `results/training/single-v3/curves.svg`, drawn by
+`scripts/plot_training_curves.py`. Means over step ranges (train batches of 16 rows):
+
+| Steps | Loss | NLL part (50 × chosen NLL) | DPO part | Chosen NLL | Chosen / rejected log-ratio | Accuracy | Grad norm |
+|---|---|---|---|---|---|---|---|
+| 1–5 | 38.05 | 34.24 | 3.81 | 0.685 | +0.093 / +0.013 | 0.76 | 509 |
+| 6–10 | 35.71 | 28.07 | 7.65 | 0.561 | +0.291 / −0.044 | 0.80 | 214 |
+| 11–20 | 34.65 | 24.55 | 10.10 | 0.491 | +0.269 / +0.000 | 0.73 | 220 |
+| 21–30 | 33.98 | 24.85 | 9.13 | 0.497 | +0.294 / −0.017 | 0.74 | 213 |
+| 31–40 | 32.61 | 24.70 | 7.90 | 0.494 | +0.348 / −0.046 | 0.81 | 184 |
+| 41–50 | 33.74 | 23.50 | 10.26 | 0.470 | +0.304 / +0.026 | 0.71 | 200 |
+| 51–60 | 31.81 | 22.30 | 9.49 | 0.446 | +0.330 / +0.025 | 0.72 | 197 |
+| 61–70 | 31.43 | 22.25 | 9.20 | 0.445 | +0.350 / +0.029 | 0.75 | 187 |
+
+- **The loss falls because of the NLL term**: chosen NLL goes from 0.685 to 0.445 nat/token, with most of
+  the drop in the first 10 steps.
+- **The DPO part rises**, from 3.8 to about 9–10. This is expected with h = 51.2 × (log-ratio difference)
+  and label smoothing 0.1:
+  - once |h| reaches about 10–15, a misordered pair costs about 0.9·|h|, and a correct pair still costs
+    0.1·h;
+  - the smoothing term's gradient pushes large correct margins back down.
+  - So in v3 the DPO term acts mostly as a regulariser on the margin, while NLL does the moving.
+
 ### 3.3 Why runs 1 and v2 did not move, and v3 did
 
 At h ≈ 0 the DPO gradient on each chosen token is (1 − 2·ls)/2 · β·N0/n = 0.4 × 51.2/n ≈ **20.5/n**. The
@@ -342,7 +365,7 @@ This repo is an **overlay** on upstream `github.com/tony-dendrite/albedo` at com
 | `scripts/run_repo_context_local.sh`, `scripts/repo_context_windows.py`, `scripts/check_local_grounding.py` | Local grounding service and parity check |
 | `scripts/vinhable_dpo_data.py`, `scripts/prepare_vinhable_dpo.py` | Production-template renderer, per-turn sequences, dataset contract check |
 | `scripts/train_vinhable_dpo.py` | Trainer (`--phase reference` / `--phase train`, `--local-cpu` for the tiny-model tests) |
-| `scripts/reassemble_trained_checkpoint.py`, `scripts/thinking_check_vllm.py`, `scripts/check_dedup_gate_local.py` | Post-training: full checkpoint, generation health, dedup replica |
+| `scripts/reassemble_trained_checkpoint.py`, `scripts/thinking_check_vllm.py`, `scripts/check_dedup_gate_local.py`, `scripts/plot_training_curves.py` | Post-training: full checkpoint, generation health, dedup replica, training-curve SVG |
 | `scripts/run_vinhable_dpo_8xh200.sh` | Stages: setup, prep, reference, smoke, train, sweep, dedup, reassemble, think, full |
 | `ops/vinhable-dpo/machine.sh`, `ops/vinhable-dpo/watch.sh` | Push code to a rented box and run stages in tmux; low-frequency watcher |
 | `tests/` | CPU tests: two-pass gradient equals autograd, padding invariance, pack budgets, renderer, tolerant reader. They need `scripts/make_tiny_qwen35moe.py` |
