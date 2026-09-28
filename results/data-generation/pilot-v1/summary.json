@@ -1,0 +1,39 @@
+{
+  "tasks_ok": 20,
+  "errors": 0,
+  "stops": {
+    "horizon": 18,
+    "truncated": 2
+  },
+  "assistant_turns": 255,
+  "reasoning_tokens_per_turn": {
+    "mean": 163.38735177865613,
+    "p50": 1,
+    "p90": 337,
+    "max": 3380
+  },
+  "turns_empty_reasoning": 132,
+  "turns_truncated": 2,
+  "turns_without_one_bash_block": 4,
+  "turns_starting_THOUGHT": 192,
+  "glm_score_mean": 0.42839257142857146,
+  "king_mean_of_same_tasks": 0.5773202857142857,
+  "glm_beats_king_mean_by_0.05": 4,
+  "glm_below_king_mean": 9,
+  "glm_amputated": 11,
+  "king_rejudge_parity": {
+    "n": 16,
+    "mean_abs_diff": 0.06553031250000001,
+    "max_abs_diff": 0.523533
+  },
+  "cost_usd": {
+    "glm": 1.3136,
+    "simulator": 0.384,
+    "judge": 1.0392,
+    "attributed_total": 2.7368,
+    "key_debit": 2.7372,
+    "key_remaining": 47.705238973
+  },
+  "elapsed_seconds": 667.2,
+  "key_debit_per_task": 0.1369
+}

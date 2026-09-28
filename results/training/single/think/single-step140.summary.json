@@ -1,0 +1,13 @@
+{
+ "label": "single-step140",
+ "model": "/workspace/vinhable/models/single-step140",
+ "turns": 48,
+ "closed_rate": 0.9791666666666666,
+ "empty_think_rate": 0.0,
+ "cut_at_limit_rate": 0.1875,
+ "one_bash_block_rate": 0.8125,
+ "thought_prefix_rate": 0.25,
+ "reasoning_tokens_mean": 278.8510638297872,
+ "reasoning_tokens_p50": 200,
+ "reasoning_tokens_p90": 567
+}

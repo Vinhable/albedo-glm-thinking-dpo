@@ -1,0 +1,50 @@
+diff --git a/src/albedo_eval_service/judge_llm_client.py b/src/albedo_eval_service/judge_llm_client.py
+index e4f3cb4..fdf3727 100644
+--- a/src/albedo_eval_service/judge_llm_client.py
++++ b/src/albedo_eval_service/judge_llm_client.py
+@@ -26,6 +26,7 @@ class JudgeRawResponse:
+     raw: str
+     error: str | None = None
+     logprobs: list[dict[str, Any]] | None = None
++    usage: dict[str, Any] | None = None
+ 
+ 
+ ENGY_PURPOSES = frozenset({"reference"})
+@@ -53,6 +54,9 @@ class JudgeLLMClient:
+             limits=httpx.Limits(max_connections=pool, max_keepalive_connections=pool),
+         )
+         self._semaphores: dict[str, asyncio.Semaphore] = {}
++        # Per-attempt accounting is intentionally retained: a returned response alone would
++        # undercount transport/content retries and hedged requests.
++        self.usage_records: list[dict[str, Any]] = []
+         self._engy = (
+             httpx.AsyncClient(
+                 base_url=settings.engy_base_url.rstrip("/"),
+@@ -427,6 +431,19 @@ class JudgeLLMClient:
+         cached = (usage.get("prompt_tokens_details") or {}).get("cached_tokens", 0)
+         reasoning = (usage.get("completion_tokens_details") or {}).get("reasoning_tokens", 0)
+         served_by = "engy" if on_engy else (body.get("provider") or _provider_name(model))
++        self.usage_records.append(
++            {
++                "model": model,
++                "provider": served_by,
++                "purpose": purpose,
++                "prompt_tokens": int(usage.get("prompt_tokens") or 0),
++                "cached_tokens": int(cached or 0),
++                "completion_tokens": int(usage.get("completion_tokens") or 0),
++                "reasoning_tokens": int(reasoning or 0),
++                "cost": float(usage.get("cost") or 0.0),
++                "elapsed_seconds": round(time.monotonic() - started, 3),
++            }
++        )
+         logger.debug(
+             f"[judge-llm] usage purpose={purpose} model={model} provider={served_by} "
+             f"elapsed={time.monotonic() - started:.1f}s "
+@@ -449,6 +466,7 @@ class JudgeLLMClient:
+             provider=provider,
+             raw=raw,
+             logprobs=_message_logprobs(body.get("choices", [])) if want_logprobs else None,
++            usage=usage,
+         )
+ 
+ 

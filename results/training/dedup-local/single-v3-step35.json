@@ -1,0 +1,24 @@
+{
+  "verdict": "PASS",
+  "reason": null,
+  "message": "TRAINED delta on king (F_struct 0.185, rel_struct 0.0028)",
+  "notes": [
+    "TRAINED"
+  ],
+  "rel_struct": 0.0028101913412248367,
+  "rel_trivial_threshold": 0.0025,
+  "density": 0.7998046875,
+  "density_threshold": 0.2,
+  "F_struct": 0.1845040652353878,
+  "F_noise_threshold": 0.1,
+  "embed_ratio": 0.0,
+  "distances": [
+    [
+      "king",
+      0.0065438823497023
+    ]
+  ],
+  "tensors_identical_hash": false,
+  "caveat": "local secret; same statistics as the validator, not bit-identical",
+  "rel_struct_headroom_x": 1.12
+}

@@ -1,0 +1,61 @@
+{
+  "tasks_ok": 15,
+  "errors": 0,
+  "stops": {
+    "horizon": 11,
+    "truncated": 3,
+    "submitted": 1
+  },
+  "assistant_turns": 199,
+  "reasoning_tokens_per_turn": {
+    "mean": 641.4642857142857,
+    "p50": 405,
+    "p90": 1640,
+    "max": 3945
+  },
+  "turns_empty_reasoning": 0,
+  "redraws_total": 0,
+  "rejected_draw_reasons": {
+    "truncated": 3,
+    "reasoning_over_cap": 9
+  },
+  "turns_kept_with_defect": 12,
+  "providers": {
+    "Baidu": 199
+  },
+  "judge_retries_total": 10,
+  "glm_unscored": 4,
+  "turns_truncated": 3,
+  "turns_without_one_bash_block": 1,
+  "turns_starting_THOUGHT": 148,
+  "glm_score_mean": 0.4988721818181818,
+  "king_mean_of_same_tasks": 0.5635636363636364,
+  "glm_beats_king_mean_by_0.05": 3,
+  "glm_below_king_mean": 6,
+  "glm_amputated": 0,
+  "king_rejudge_parity": {
+    "n": 0,
+    "mean_abs_diff": null,
+    "max_abs_diff": null
+  },
+  "cost_usd": {
+    "glm": 0.5877,
+    "simulator": 0.3565,
+    "judge": 0.5184,
+    "attributed_total": 1.4625,
+    "key_debit": 1.474,
+    "key_remaining": 39.789674414
+  },
+  "elapsed_seconds": 337.3,
+  "settings": {
+    "reasoning_effort": "high",
+    "reasoning_cap": 2300,
+    "turn_retries": 0,
+    "judge_retries": 2,
+    "glm_system_suffix": "",
+    "glm_user_suffix": "\n\n[Reasoning requirement for this turn, including routine steps like verifying an edit: before replying, reason privately through all five points below, writing at least four full sentences for each point (about 400 to 700 words in total, never more than 1,500): 1) Observation: what exactly this output shows, line by line where it matters. 2) Evidence: what it confirms or rules out about the bug and the fix so far. 3) Open questions: the hypotheses still open and what could still be wrong. 4) Options: at least two candidate next commands and their trade-offs. 5) Decision: why the chosen command is the best next step. Then answer in the required format.]",
+    "glm_providers": "baidu,streamlake",
+    "rejudge_king": false
+  },
+  "key_debit_per_task": 0.0983
+}

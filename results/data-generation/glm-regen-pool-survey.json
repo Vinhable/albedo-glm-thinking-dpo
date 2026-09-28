@@ -1,0 +1,43 @@
+{
+  "runs_used": 34,
+  "graded_tasks_with_two_king_rollouts": 3333,
+  "unique_sample_ids": 3314,
+  "finished_range": [
+    "2026-09-23T18:02:00.047124+00:00",
+    "2026-09-26T15:13:22.043693+00:00"
+  ],
+  "king_mean_band": {
+    ">=0.85": 1476,
+    "0.7-0.85": 956,
+    "0.5-0.7": 607,
+    "<0.5": 294
+  },
+  "king_mean_band_with_glm_ref_best_ge_0.9": {
+    ">=0.85": 1402,
+    "0.7-0.85": 827,
+    "0.5-0.7": 490,
+    "<0.5": 224
+  },
+  "pair_potential_if_glm_matches_its_reference": {
+    "glm_beats_both_king_by_0.15": 1072,
+    "glm_beats_one_king_by_0.15": 916,
+    "king_best_beats_glm_by_0.15": 29
+  },
+  "counts": {
+    "samples": 3400,
+    "rollout_unusable:king": 107,
+    "rollout_unusable:challenger": 106,
+    "skip_king_rollouts_lt2": 67
+  },
+  "by_source": {
+    "open-swe-traces": 1231,
+    "swe-hero": 134,
+    "mini-coder": 1875,
+    "mini-coder-rs": 93
+  },
+  "by_phase": {
+    "cold": 2326,
+    "pre_edit": 414,
+    "at_edit": 593
+  }
+}

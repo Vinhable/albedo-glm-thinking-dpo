@@ -1,0 +1,59 @@
+{
+  "tasks_ok": 15,
+  "errors": 0,
+  "stops": {
+    "truncated": 1,
+    "horizon": 14
+  },
+  "assistant_turns": 195,
+  "reasoning_tokens_per_turn": {
+    "mean": 71.84020618556701,
+    "p50": 1,
+    "p90": 159,
+    "max": 1259
+  },
+  "turns_empty_reasoning": 109,
+  "redraws_total": 0,
+  "rejected_draw_reasons": {
+    "empty_reasoning": 109,
+    "truncated": 1
+  },
+  "turns_kept_with_defect": 110,
+  "providers": {
+    "Wafer": 87,
+    "Mistral": 108
+  },
+  "judge_retries_total": 8,
+  "glm_unscored": 4,
+  "turns_truncated": 1,
+  "turns_without_one_bash_block": 2,
+  "turns_starting_THOUGHT": 171,
+  "glm_score_mean": 0.4747207272727273,
+  "king_mean_of_same_tasks": 0.5669434545454545,
+  "glm_beats_king_mean_by_0.05": 3,
+  "glm_below_king_mean": 7,
+  "glm_amputated": 8,
+  "king_rejudge_parity": {
+    "n": 0,
+    "mean_abs_diff": null,
+    "max_abs_diff": null
+  },
+  "cost_usd": {
+    "glm": 0.9414,
+    "simulator": 0.2679,
+    "judge": 0.5509,
+    "attributed_total": 1.7602,
+    "key_debit": 1.7738,
+    "key_remaining": 41.489577901
+  },
+  "elapsed_seconds": 368.2,
+  "settings": {
+    "reasoning_effort": "low",
+    "reasoning_cap": 2300,
+    "turn_retries": 0,
+    "judge_retries": 2,
+    "glm_system_suffix": "REASONING PROTOCOL (strict, applies to every single turn):\n- You MUST reason privately before every response. Never skip reasoning, not even for simple steps\n  such as listing files, reading a file, or re-running a command.\n- In that reasoning: state what the latest observation shows, what it means for the task, and why\n  the next command is the right one.\n- Keep the reasoning focused and concise: about 50 to 300 words, never more than 1,500 words.\n- After reasoning, write the visible response exactly in the format the instructions above require,\n  with exactly one bash code block.",
+    "rejudge_king": false
+  },
+  "key_debit_per_task": 0.1183
+}

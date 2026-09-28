@@ -1,0 +1,60 @@
+{
+  "tasks_ok": 25,
+  "errors": 0,
+  "stops": {
+    "horizon": 22,
+    "truncated": 1,
+    "submitted": 2
+  },
+  "assistant_turns": 349,
+  "reasoning_tokens_per_turn": {
+    "mean": 685.1637931034483,
+    "p50": 384,
+    "p90": 1830,
+    "max": 3864
+  },
+  "turns_empty_reasoning": 1,
+  "redraws_total": 20,
+  "rejected_draw_reasons": {
+    "truncated": 21
+  },
+  "turns_kept_with_defect": 1,
+  "providers": {
+    "Baidu": 349
+  },
+  "judge_retries_total": 13,
+  "glm_unscored": 5,
+  "turns_truncated": 1,
+  "turns_without_one_bash_block": 1,
+  "turns_starting_THOUGHT": 252,
+  "glm_score_mean": 0.5846899,
+  "king_mean_of_same_tasks": 0.4377369,
+  "glm_beats_king_mean_by_0.05": 11,
+  "glm_below_king_mean": 8,
+  "glm_amputated": 0,
+  "king_rejudge_parity": {
+    "n": 0,
+    "mean_abs_diff": null,
+    "max_abs_diff": null
+  },
+  "cost_usd": {
+    "glm": 1.0924,
+    "simulator": 0.6284,
+    "judge": 0.8084,
+    "attributed_total": 2.5291,
+    "key_debit": 5.6723,
+    "key_remaining": 7.847527212000003
+  },
+  "elapsed_seconds": 516.2,
+  "settings": {
+    "reasoning_effort": "high",
+    "reasoning_cap": 2300,
+    "turn_retries": 2,
+    "judge_retries": 2,
+    "glm_system_suffix": "",
+    "glm_user_suffix": "\n\n[Reasoning requirement for this turn, including routine steps like verifying an edit: before replying, reason privately through all five points below, writing at least two full sentences for each point (about 200 to 400 words in total, never more than 700): 1) Observation: what exactly this output shows, line by line where it matters. 2) Evidence: what it confirms or rules out about the bug and the fix so far. 3) Open questions: the hypotheses still open and what could still be wrong. 4) Options: at least two candidate next commands and their trade-offs. 5) Decision: why the chosen command is the best next step. Then answer in the required format.]",
+    "glm_providers": "baidu,streamlake",
+    "rejudge_king": false
+  },
+  "key_debit_per_task": 0.2269
+}

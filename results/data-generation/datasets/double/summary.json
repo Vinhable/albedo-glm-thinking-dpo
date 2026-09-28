@@ -1,0 +1,74 @@
+{
+  "name": "double",
+  "schema": "albedo-glm-thinking-dpo-v1",
+  "pairs": 371,
+  "tasks": 218,
+  "margin_min": 0.15,
+  "by_split": {
+    "train": 345,
+    "dev": 26
+  },
+  "by_direction": {
+    "glm_over_king": 283,
+    "king_over_glm": 88
+  },
+  "by_task_role": {
+    "main": 340,
+    "contrast": 31
+  },
+  "by_source": {
+    "swe-hero": 19,
+    "open-swe-traces": 111,
+    "mini-coder": 228,
+    "mini-coder-rs": 13
+  },
+  "by_phase": {
+    "cold": 257,
+    "pre_edit": 48,
+    "at_edit": 66
+  },
+  "margin_median": 0.315391,
+  "glm_score_mean": 0.7164,
+  "king_score_mean": 0.5021,
+  "tolerant_logprob_scored_pairs": 43,
+  "thinking_audit": {
+    "glm": {
+      "assistant_turns": 2875,
+      "think_closed_rate": 1.0,
+      "empty_think_turns": 2,
+      "turn_tokens_median": 521,
+      "over_turn_limit": 3,
+      "nudge_echo_turns": 254,
+      "supervised_turns": 2618
+    },
+    "king": {
+      "assistant_turns": 4802,
+      "think_closed_rate": 0.9971,
+      "empty_think_turns": 0,
+      "turn_tokens_median": 539.5,
+      "over_turn_limit": 0,
+      "nudge_echo_turns": 0,
+      "supervised_turns": 4793
+    }
+  },
+  "build_counts": {
+    "task_with_pair": 218,
+    "task_tie": 79
+  },
+  "grouped": {
+    "rows": 2065,
+    "rows_by_split": {
+      "train": 1915,
+      "dev": 150
+    },
+    "pairs": 363,
+    "pairs_by_direction": {
+      "glm_over_king": 277,
+      "king_over_glm": 86
+    },
+    "counts": {
+      "grouped_rows_dropped:no_supervised_turn": 154,
+      "grouped_pairs": 371
+    }
+  }
+}

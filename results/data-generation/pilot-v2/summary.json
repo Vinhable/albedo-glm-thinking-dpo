@@ -1,0 +1,55 @@
+{
+  "tasks_ok": 20,
+  "errors": 0,
+  "stops": {
+    "horizon": 20
+  },
+  "assistant_turns": 275,
+  "reasoning_tokens_per_turn": {
+    "mean": 126.16363636363636,
+    "p50": 21,
+    "p90": 327,
+    "max": 2138
+  },
+  "turns_empty_reasoning": 95,
+  "redraws_total": 393,
+  "rejected_draw_reasons": {
+    "empty_reasoning": 486,
+    "truncated": 1,
+    "reasoning_over_cap": 1
+  },
+  "turns_kept_with_defect": 95,
+  "providers": {
+    "Venice": 1,
+    "Parasail": 1,
+    "Decart": 1,
+    "Inceptron": 6,
+    "Wafer": 149,
+    "Mistral": 117
+  },
+  "judge_retries_total": 4,
+  "glm_unscored": 1,
+  "turns_truncated": 0,
+  "turns_without_one_bash_block": 2,
+  "turns_starting_THOUGHT": 215,
+  "glm_score_mean": 0.6976538947368421,
+  "king_mean_of_same_tasks": 0.5543637105263157,
+  "glm_beats_king_mean_by_0.05": 11,
+  "glm_below_king_mean": 8,
+  "glm_amputated": 4,
+  "king_rejudge_parity": {
+    "n": 16,
+    "mean_abs_diff": 0.0577044375,
+    "max_abs_diff": 0.32103799999999993
+  },
+  "cost_usd": {
+    "glm": 2.5969,
+    "simulator": 0.5149,
+    "judge": 1.2776,
+    "attributed_total": 4.3893,
+    "key_debit": 4.3863,
+    "key_remaining": 43.279935928
+  },
+  "elapsed_seconds": 470.7,
+  "key_debit_per_task": 0.2193
+}

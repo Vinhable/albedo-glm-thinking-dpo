@@ -1,0 +1,41 @@
+{
+  "tasks": 300,
+  "glm_reasoning_qwen_tokens": {
+    "n": 3747,
+    "mean": 492,
+    "p10": 94,
+    "p50": 361,
+    "p90": 983,
+    "max": 4108,
+    "zero": 3
+  },
+  "king_reasoning_qwen_tokens_same_tasks": {
+    "n": 7674,
+    "mean": 356,
+    "p10": 73,
+    "p50": 230,
+    "p90": 778,
+    "max": 3837,
+    "zero": 0
+  },
+  "glm_turn_qwen_tokens": {
+    "n": 3747,
+    "mean": 663,
+    "p10": 226,
+    "p50": 519,
+    "p90": 1252,
+    "max": 4437,
+    "zero": 0
+  },
+  "king_turn_qwen_tokens_same_tasks": {
+    "n": 7674,
+    "mean": 702,
+    "p10": 209,
+    "p50": 535,
+    "p90": 1382,
+    "max": 4077,
+    "zero": 0
+  },
+  "glm_turns_over_4096": 5,
+  "king_think_closed_share": 0.999
+}

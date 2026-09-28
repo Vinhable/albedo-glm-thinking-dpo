@@ -1,0 +1,49 @@
+{
+  "strategy": "gap",
+  "candidates": 3294,
+  "chosen": 300,
+  "counts": {
+    "candidate": 3294,
+    "rollout_unusable:king": 107,
+    "rollout_unusable:challenger": 106,
+    "skip:missing_king_or_reference": 85,
+    "skip:already_piloted": 21,
+    "pool:main": 486,
+    "pool:contrast": 30
+  },
+  "chosen_by_role": {
+    "main": 270,
+    "contrast": 30
+  },
+  "chosen_by_source": {
+    "open-swe-traces": 83,
+    "mini-coder": 192,
+    "mini-coder-rs": 11,
+    "swe-hero": 14
+  },
+  "chosen_by_phase": {
+    "cold": 211,
+    "pre_edit": 33,
+    "at_edit": 56
+  },
+  "chosen_king_mean": 0.5328306516666667,
+  "chosen_horizon": {
+    "9": 9,
+    "10": 6,
+    "12": 123,
+    "16": 126,
+    "11": 8,
+    "6": 6,
+    "8": 7,
+    "13": 6,
+    "15": 4,
+    "14": 3,
+    "5": 2
+  },
+  "main_king_mean": 0.488,
+  "main_glm_ref_best_mean": 0.975,
+  "main_gap_glm_over_king_min": 0.23,
+  "contrast_king_mean": 0.936,
+  "contrast_glm_ref_best_mean": 0.798,
+  "contrast_gap_glm_over_king_min": -0.833
+}

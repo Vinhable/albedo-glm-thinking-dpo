@@ -1,0 +1,13 @@
+{
+ "label": "king127",
+ "model": "/workspace/vinhable/models/king127",
+ "turns": 48,
+ "closed_rate": 1.0,
+ "empty_think_rate": 0.0,
+ "cut_at_limit_rate": 0.0,
+ "one_bash_block_rate": 1.0,
+ "thought_prefix_rate": 0.5833333333333334,
+ "reasoning_tokens_mean": 108.3125,
+ "reasoning_tokens_p50": 80,
+ "reasoning_tokens_p90": 258
+}

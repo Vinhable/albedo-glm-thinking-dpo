@@ -1,0 +1,62 @@
+{
+  "tasks_ok": 300,
+  "errors": 0,
+  "stops": {
+    "truncated": 25,
+    "horizon": 236,
+    "submitted": 39
+  },
+  "assistant_turns": 3772,
+  "reasoning_tokens_per_turn": {
+    "mean": 477.1579930611156,
+    "p50": 350,
+    "p90": 947,
+    "max": 3952
+  },
+  "turns_empty_reasoning": 3,
+  "redraws_total": 0,
+  "rejected_draw_reasons": {
+    "truncated": 25,
+    "reasoning_over_cap": 53,
+    "empty_reasoning": 3
+  },
+  "turns_kept_with_defect": 81,
+  "providers": {
+    "Baidu": 3772
+  },
+  "judge_retries_total": 113,
+  "glm_unscored": 50,
+  "turns_truncated": 25,
+  "turns_without_one_bash_block": 5,
+  "turns_starting_THOUGHT": 3047,
+  "glm_score_mean": 0.611700992,
+  "king_mean_of_same_tasks": 0.537256526,
+  "glm_beats_king_mean_by_0.05": 142,
+  "glm_below_king_mean": 93,
+  "glm_amputated": 0,
+  "king_rejudge_parity": {
+    "n": 0,
+    "mean_abs_diff": null,
+    "max_abs_diff": null
+  },
+  "cost_usd": {
+    "glm": 8.904,
+    "simulator": 7.6506,
+    "judge": 7.4585,
+    "attributed_total": 24.0131,
+    "key_debit": 24.8143,
+    "key_remaining": 13.564089467000002
+  },
+  "elapsed_seconds": 1950.1,
+  "settings": {
+    "reasoning_effort": "high",
+    "reasoning_cap": 2300,
+    "turn_retries": 0,
+    "judge_retries": 2,
+    "glm_system_suffix": "",
+    "glm_user_suffix": "\n\n[Reasoning requirement for this turn, including routine steps like verifying an edit: before replying, reason privately through all five points below, writing at least two full sentences for each point (about 200 to 400 words in total, never more than 700): 1) Observation: what exactly this output shows, line by line where it matters. 2) Evidence: what it confirms or rules out about the bug and the fix so far. 3) Open questions: the hypotheses still open and what could still be wrong. 4) Options: at least two candidate next commands and their trade-offs. 5) Decision: why the chosen command is the best next step. Then answer in the required format.]",
+    "glm_providers": "baidu,streamlake",
+    "rejudge_king": false
+  },
+  "key_debit_per_task": 0.0827
+}

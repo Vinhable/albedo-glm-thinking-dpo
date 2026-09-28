@@ -1,0 +1,16 @@
+{
+ "label": "step20",
+ "model": "/workspace/vinhable/models/single-v3-step20",
+ "turns": 48,
+ "closed_rate": 1.0,
+ "empty_think_rate": 0.0,
+ "cut_at_limit_rate": 0.0,
+ "one_bash_block_rate": 1.0,
+ "thought_prefix_rate": 0.6666666666666666,
+ "degenerate_rate": 0.0,
+ "action_chars_p50": 298,
+ "action_chars_p90": 446,
+ "reasoning_tokens_mean": 82.79166666666667,
+ "reasoning_tokens_p50": 57,
+ "reasoning_tokens_p90": 215
+}

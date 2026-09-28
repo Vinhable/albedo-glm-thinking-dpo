@@ -1,0 +1,22 @@
+{
+  "verdict": "REJECT",
+  "reason": "TRIVIAL-EDIT",
+  "message": "structured change vs king is 0.0024 of weight norm (< 0.0025)",
+  "notes": [],
+  "rel_struct": 0.002369435464924045,
+  "rel_trivial_threshold": 0.0025,
+  "density": 0.756591796875,
+  "density_threshold": 0.2,
+  "F_struct": 0.20421094515655538,
+  "F_noise_threshold": 0.1,
+  "embed_ratio": 0.0,
+  "distances": [
+    [
+      "king",
+      0.005244260099639597
+    ]
+  ],
+  "tensors_identical_hash": false,
+  "caveat": "local secret; same statistics as the validator, not bit-identical",
+  "rel_struct_headroom_x": 0.95
+}
