@@ -261,16 +261,65 @@ reached its margin mostly by pushing the rejected (King) text down, and the chos
    - Options: `MIN_LR_RATIO=0.3`–`0.5` (the LR floor, default 0.1) or a constant LR after warmup; `vinhable_double` (1.7× rows); or a
      second epoch at a moderate LR.
    - Target a local `rel_struct` of at least 1.3× the threshold, and re-check thinking health each time.
-4. **Scale the data only after a positive duel.**
-   - At about $0.083 per task (GLM + simulator + judge), 1,000–1,500 tasks cost ~$100–125; 12k tasks cost
-     ~$1,000.
-   - The current pool has about 800–1,800 weak-King tasks (§2.1). More needs new graded runs.
-   - Scale in steps (1k, then more) and duel after each.
+4. **Scale the data only after a positive duel, in milestones, and keep the best milestone rather than
+   the biggest.** More data is not guaranteed to help: more rows also means more steps, more drift toward
+   GLM's style, and weaker pairs once the strongest-gap tasks are used up. A 4k or 5k set that duels best
+   is the one to develop, even if 12k is affordable. See §5.1.
 5. **If the duel loses**, run ablations before spending on data:
    - pure SFT (DPO off) vs v3;
    - drop the 55 King > GLM pairs vs keep them;
    - reasoning-length control;
    - a multi-turn health check in the real harness.
+
+### 5.1 Scaling ladder
+
+Estimates are extrapolated linearly from the 300-task batch:
+- **API cost** is about $0.10 per task. That is $0.083 for the run, plus re-running truncated tasks and
+  re-judging: $30.96 for 300 tasks.
+- **Yield** is 214 pairs (0.71 per task) and 1,127 train rows (3.76 per task) with the `single` builder.
+- **Training time** is 3.7 s per row on 8×H200 with our per-turn trainer (70 min for 1,127 rows), at about
+  $32/h (Shadeform). The lab's branch-packed forward should be several times faster; that is expected,
+  not measured.
+
+| Milestone (tasks generated) | API | Pairs | Train rows | Steps / epoch (16 rows) | 8×H200 hours / epoch (our trainer) |
+|---|---|---|---|---|---|
+| 300 (done) | $31 | 214 | 1,127 | 70 | 1.2 |
+| 1,000 | ~$100 | ~710 | ~3,760 | ~235 | ~3.9 |
+| 2,000 | ~$200 | ~1,430 | ~7,500 | ~470 | ~7.8 |
+| 4,000 | ~$400 | ~2,850 | ~15,000 | ~940 | ~15.6 |
+| 5,000 | ~$500 | ~3,570 | ~18,800 | ~1,175 | ~19.5 |
+| 7,000 | ~$700 | ~5,000 | ~26,300 | ~1,645 | ~27 |
+| 8,000 | ~$800 | ~5,700 | ~30,100 | ~1,880 | ~31 |
+| 12,000 | ~$1,200 | ~8,560 | ~45,100 | ~2,820 | ~47 |
+
+How to run the ladder so that milestones can be compared:
+
+- **Nested sets.**
+  - Rank candidate tasks once, by the robust GLM-over-King gap, keeping ~10% contrast tasks.
+  - Generate in that order. Each milestone is then a prefix of the next, and only the added tasks cost
+    money.
+- **One fixed duel set.** Hold out duel tasks that never enter any milestone. Duel every trained milestone
+  on that same set (2 × 100 samples) against King 127.
+- **Fixed recipe.**
+  - Keep v3's objective and 1 epoch at every milestone.
+  - Larger sets take more steps at the same LR, so they drift further from the King. Check the thinking
+    health and local dedup of each; if a large set degrades, try it again at a lower LR rather than
+    dropping it.
+- **Not every milestone needs training.**
+  - Train 1k, 2k and 4k first.
+  - If the duel score still rises at 4k, bracket the peak with 5k, 7k and 8k.
+  - Go to 12k only if 8k still beats 7k by more than duel noise (roughly 0.01–0.02 on 100 samples; confirm
+    with the second eval).
+  - If the score peaks at 4k–5k, develop that set (dedup margin, LR, contrast share) instead of adding
+    data.
+- **The pool is the limit, not money.**
+  - The current graded pool has 783 tasks with King ≤ 0.7 and GLM ≥ 0.9, and 1,836 with King < 0.9
+    (§2.1).
+  - Beyond ~2k tasks the ladder must either relax the selection (smaller gaps, stronger King, more ties,
+    so fewer and weaker pairs per task: expect the 0.71 yield to fall) or use newly crawled graded runs.
+    Each eval run adds ~100 tasks; our last crawl found 50 runs in 5 days.
+  - `double` (a pair per King rollout) adds about 1.7× rows from the same tasks at no API cost. Try it at a
+    milestone before paying for more tasks.
 
 ## 6. Repository layout and use
 
