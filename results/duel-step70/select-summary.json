@@ -1,0 +1,29 @@
+{
+  "candidates": 2933,
+  "chosen": 100,
+  "counts": {
+    "rollout_unusable:king": 107,
+    "rollout_unusable:challenger": 106,
+    "candidate": 2933,
+    "skip:used_for_data": 323,
+    "skip:missing_king_or_questions": 67,
+    "skip:horizon_mismatch": 61,
+    "skip:repeat_sample": 16
+  },
+  "by_phase": {
+    "cold": 65,
+    "pre_edit": 15,
+    "at_edit": 20
+  },
+  "by_source": {
+    "open-swe-traces": 33,
+    "mini-coder": 63,
+    "swe-hero": 3,
+    "mini-coder-rs": 1
+  },
+  "by_horizon": {
+    "12": 62,
+    "16": 38
+  },
+  "king_production_mean": 0.7942
+}

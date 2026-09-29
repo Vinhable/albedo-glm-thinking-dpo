@@ -1,0 +1,53 @@
+{
+  "schema": "albedo-king-selfpairs-v1",
+  "margin_min": 0.2,
+  "pairs": 599,
+  "pairs_by_split": {
+    "dev": 65,
+    "train": 534
+  },
+  "by_phase": {
+    "cold": 427,
+    "pre_edit": 74,
+    "at_edit": 98
+  },
+  "by_source": {
+    "open-swe-traces": 227,
+    "mini-coder": 316,
+    "mini-coder-rs": 29,
+    "swe-hero": 27
+  },
+  "margin_median": 0.3098,
+  "chosen_score_mean": 0.8769,
+  "rejected_score_mean": 0.5057,
+  "loss_turns_before_grouping": {
+    "chosen": 7647,
+    "rejected": 7627
+  },
+  "grouped": {
+    "rows": 3530,
+    "rows_by_split": {
+      "dev": 384,
+      "train": 3146
+    },
+    "pairs_with_rows": {
+      "dev": 65,
+      "train": 533
+    },
+    "counts": {
+      "grouped_pairs": 598,
+      "grouped_rows_dropped:no_supervised_turn": 27,
+      "grouped_rows_dropped:side_without_trained_turn": 8,
+      "grouped_drop:fewer_than_four_turns": 1
+    }
+  },
+  "build_counts": {
+    "skip:below_margin": 2307,
+    "pair": 599,
+    "skip:already_used": 423,
+    "rollout_unusable:king": 107,
+    "rollout_unusable:challenger": 106,
+    "skip:fewer_than_2_king": 67,
+    "skip:contexts_differ": 4
+  }
+}

@@ -26,9 +26,12 @@ SSH=(ssh -i "$KEY" -p "$PORT" -o BatchMode=yes -o ConnectTimeout=30 -o ServerAli
 probe() {
   "${SSH[@]}" "
     R=$WORK/runs/${RUN_SUBDIR:-$DATASET}; L=$WORK/logs
-    last=\$(tail -n 1 \$R/metrics.jsonl 2>/dev/null | cut -c1-400)
-    rank0=\$(tail -n 1 \$R/rank0.log 2>/dev/null | cut -c1-200)
-    age=\$(( (\$(date +%s) - \$(stat -c %Y \$R/rank0.log 2>/dev/null || date +%s)) / 60 ))
+    # our trainer writes metrics.jsonl + rank0.log; the lab trainer history.jsonl + train.log
+    M=\$R/metrics.jsonl; [ -f \$M ] || M=\$R/history.jsonl
+    G=\$R/rank0.log; [ -f \$G ] || G=\$R/train.log
+    last=\$(tail -n 1 \$M 2>/dev/null | cut -c1-400)
+    rank0=\$(grep -v '^\s*$' \$G 2>/dev/null | tail -n 1 | cut -c1-200)
+    age=\$(( (\$(date +%s) - \$(stat -c %Y \$G 2>/dev/null || date +%s)) / 60 ))
     finished=\$(tmux capture-pane -p -t $STAGE-$DATASET 2>/dev/null | grep -c '\[stage finished')
     errors=\$(cat \$L/*-$DATASET.log 2>/dev/null | grep -c 'Traceback')
     gpu=\$(nvidia-smi --query-gpu=utilization.gpu,memory.used --format=csv,noheader,nounits | awk -F, '{u+=\$1; m+=\$2} END {printf \"%d%%/%dGiB\", u/NR, m/NR/1024}')
@@ -51,7 +54,7 @@ while true; do
   [ "${fin:-0}" -gt 0 ] && event="done"
   [ "${err:-0}" -gt "$errors_at_start" ] && event="error"
   # only the training signals: the final drift record legitimately holds a NaN increment ratio
-  echo "$out" | grep '^LAST' | grep -q -E '"(loss|grad_norm)": (NaN|-?Infinity)' && event="nan"
+  echo "$out" | grep '^LAST' | grep -q -E '"(loss|grad_norm|nll_c)": (NaN|-?Infinity)' && event="nan"
   [ "${age:-0}" -ge "$STALL_MIN" ] && event="stalled"
   if [ -n "$event" ]; then
     echo "$(date '+%F %T') EVENT=$event" >> "$LOCAL_LOG"

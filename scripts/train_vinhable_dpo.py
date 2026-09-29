@@ -21,7 +21,8 @@ assistant turns of group k (vinhable_dpo_data.py renders each as its own product
     logp_side = sum of the turns' target log-probs          (reference: same, King weights)
     h         = beta * N0 * [ (logp_c - ref_c)/n_c - (logp_r - ref_r)/n_r ]   (--agg mean, default)
               = beta * [ (logp_c - ref_c) - (logp_r - ref_r) ]                 (--agg sum)
-    loss      = -(1-ls) logsig(h) - ls logsig(-h) + nll_weight * (-logp_c / n_c)
+    loss      = dpo_weight * [-(1-ls) logsig(h) - ls logsig(-h)] + nll_weight * (-logp_c / n_c)
+                (--dpo-weight 0 is plain SFT on the chosen turns)
 
 Sequences of a row are not held in one graph: pass A computes every sequence's log-prob without
 grad, the loss's derivative w.r.t. each side's log-prob is formed, and pass B back-propagates each
@@ -84,6 +85,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--norm-tokens", type=float, default=512.0, help="N0 for --agg mean")
     p.add_argument("--label-smoothing", type=float, default=0.1)
     p.add_argument("--nll-weight", type=float, default=0.1)
+    p.add_argument("--dpo-weight", type=float, default=1.0,
+                   help="0 = pure SFT on the chosen side (rejected still scored for the metrics, never trained)")
     # optimisation
     p.add_argument("--lr", type=float, default=5e-6)
     p.add_argument("--min-lr-ratio", type=float, default=0.1)
@@ -218,12 +221,13 @@ def dpo_terms(pc, pr, rc, rr, nc, nr, args) -> dict[str, float]:
     ls = args.label_smoothing
     sig = lambda x: 1.0 / (1.0 + math.exp(-x)) if x >= 0 else math.exp(x) / (1.0 + math.exp(x))
     logsig = lambda x: -math.log1p(math.exp(-x)) if x >= 0 else x - math.log1p(math.exp(x))
-    loss = -(1 - ls) * logsig(h) - ls * logsig(-h) + args.nll_weight * (-pc / nc)
-    dloss_dh = -(1 - ls) * sig(-h) + ls * sig(h)
+    w = args.dpo_weight
+    loss = w * (-(1 - ls) * logsig(h) - ls * logsig(-h)) + args.nll_weight * (-pc / nc)
+    dloss_dh = w * (-(1 - ls) * sig(-h) + ls * sig(h))
     return {
         "loss": loss, "h": h,
         "coef_chosen": dloss_dh * dh_dpc - args.nll_weight / nc,
-        "coef_rejected": dloss_dh * dh_dpr,
+        "coef_rejected": dloss_dh * dh_dpr,  # exactly 0 with --dpo-weight 0: pass B then skips rejected
         "chosen_logratio": (pc - rc) / nc, "rejected_logratio": (pr - rr) / nr,
         "chosen_nll": -pc / nc, "accuracy": float(h > 0),
     }
@@ -475,7 +479,7 @@ def main(argv: list[str] | None = None) -> int:
             # pass B: back-propagate each micro-batch, every sequence scaled by its side's derivative
             scale = 1.0 / args.rows_per_rank  # DeepSpeed averages over ranks: the step is a row mean
             jobs = [(t[f"coef_{side}"] * scale, s) for ex, t in zip(mine, terms)
-                    for side in ("chosen", "rejected") for s in getattr(ex, side)]
+                    for side in ("chosen", "rejected") for s in getattr(ex, side) if t[f"coef_{side}"] != 0.0]
             packed = micro_batches(jobs)
             n_batches = padded_count(len(packed))
             for k in range(n_batches):

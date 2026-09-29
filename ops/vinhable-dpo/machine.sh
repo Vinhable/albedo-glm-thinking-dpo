@@ -2,6 +2,7 @@
 # Local helper for the rented 8xH200 box (Git Bash on Windows).
 #
 #   HOST=1.2.3.4 [PORT=22] [SSH_USER=shadeform] bash ops/vinhable-dpo/machine.sh push   # code -> box
+#   HOST=... DATASET=kingself bash ops/vinhable-dpo/machine.sh push-data ROWS_DIR       # rows -> $WORK/data/kingself/data
 #   HOST=... bash ops/vinhable-dpo/machine.sh stage setup ["LR=1e-5 ..."]             # stage in a detached tmux session
 #   HOST=... bash ops/vinhable-dpo/machine.sh attach setup-single                     # watch it live (Ctrl-b d to leave)
 #   HOST=... bash ops/vinhable-dpo/machine.sh status                                  # sessions, GPU use, disk
@@ -21,17 +22,35 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 LOCAL_OUT="${LOCAL_OUT:-/e/albedo-storage-temp/vinhable-dpo-runs}"
 SSH=(ssh -i "$KEY" -p "$PORT" -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=30 "$SSH_USER@$HOST")
 
-case "${1:?push|stage|attach|status|tail|pull|ssh}" in
+case "${1:?push|push-lab|push-data|stage|attach|status|tail|pull|ssh}" in
 push)
   bundle="$(mktemp -d)/code.tgz"
-  tar -C "$ROOT" -czf "$bundle" \
+  # src/: upstream packages for the local dedup gate (STAGE=dedup runs with PYTHONPATH=src)
+  tar -C "$ROOT" -czf "$bundle" --exclude='__pycache__' \
     scripts/vinhable_dpo_data.py scripts/prepare_vinhable_dpo.py scripts/train_vinhable_dpo.py \
     scripts/reassemble_trained_checkpoint.py scripts/thinking_check_vllm.py scripts/run_vinhable_dpo_8xh200.sh \
-    scripts/make_tiny_qwen35moe.py tests/test_vinhable_dpo_trainer.py \
-    assets/tokenizers/Qwen3.6-35B-A3B
+    scripts/check_dedup_gate_local.py scripts/prep_vinhable_for_lab.py scripts/make_tiny_qwen35moe.py \
+    scripts/measure_king_nll.py \
+    tests/test_vinhable_dpo_trainer.py \
+    assets/tokenizers/Qwen3.6-35B-A3B src
   "${SSH[@]}" "sudo mkdir -p $WORK && sudo chown \$(id -u):\$(id -g) $WORK && mkdir -p $WORK/code"
   scp -i "$KEY" -P "$PORT" "$bundle" "$SSH_USER@$HOST:$WORK/code.tgz"
   "${SSH[@]}" "tar -C $WORK/code -xzf $WORK/code.tgz && ls $WORK/code/scripts"
+  ;;
+push-lab)
+  # the lab's trainer (checkout at LAB_ROOT, default ../albedo-lab-dpo) -> $WORK/lab, for the lab-* stages
+  LAB_ROOT="${LAB_ROOT:-$(cd "$ROOT/.." && pwd)/albedo-lab-dpo}"
+  bundle="$(mktemp -d)/lab.tgz"
+  tar -C "$LAB_ROOT" -czf "$bundle" --exclude='__pycache__' scripts/lab_train assets/tokenizers/Qwen3.6-35B-A3B
+  "${SSH[@]}" "mkdir -p $WORK/lab"
+  scp -i "$KEY" -P "$PORT" "$bundle" "$SSH_USER@$HOST:$WORK/lab.tgz"
+  "${SSH[@]}" "tar -C $WORK/lab -xzf $WORK/lab.tgz && ls $WORK/lab/scripts/lab_train | wc -l"
+  ;;
+push-data)
+  # a local rows dir (train.jsonl, dev.jsonl) -> $WORK/data/$DATASET/data, where every stage reads it
+  src="${2:?local rows dir, e.g. /e/albedo-storage-temp/king-selfpairs-20260929/rows}"
+  "${SSH[@]}" "mkdir -p $WORK/data/$DATASET/data"
+  tar -C "$src" -czf - train.jsonl dev.jsonl | "${SSH[@]}" "tar -C $WORK/data/$DATASET/data -xzf - && ls -la $WORK/data/$DATASET/data"
   ;;
 stage)
   stage="${2:?stage name}"
@@ -59,7 +78,7 @@ pull)
   mkdir -p "$LOCAL_OUT"
   # small results only; exports are ~3 GB each and come separately (PULL_EXPORTS=1)
   # GNU tar applies --exclude only to names after it: the patterns must precede logs/runs
-  "${SSH[@]}" "cd $WORK && tar -czf - --exclude='*.safetensors' --exclude='reference.rank*' logs runs" \
+  "${SSH[@]}" "cd $WORK && tar -czf - --exclude='*.safetensors' --exclude='reference.rank*' --exclude='*-rank*.pt' logs runs" \
     | tar -C "$LOCAL_OUT" -xzf -
   if [ "${PULL_EXPORTS:-0}" = 1 ]; then
     "${SSH[@]}" "cd $WORK && tar -cf - runs/*/export-step*" | tar -C "$LOCAL_OUT" -xf -

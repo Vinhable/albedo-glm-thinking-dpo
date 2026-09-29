@@ -1,0 +1,95 @@
+{
+  "schema": "sft-dpo-step70-vs-cxxvii-king-v1",
+  "tasks": 100,
+  "trajectories": 600,
+  "files": [
+    "challenger/dpo-step70-r1.jsonl",
+    "challenger/dpo-step70-r2.jsonl",
+    "challenger/sft-step70-r1.jsonl",
+    "challenger/sft-step70-r2.jsonl",
+    "king/cxxvii-king-r1.jsonl",
+    "king/cxxvii-king-r2.jsonl"
+  ],
+  "king_model": "dendriteholdings/albedo-qwen3.6-35b-king-CXXVII@e920362b460ae6b2a33c9cb298aa7f14a38d5584",
+  "checkpoints": {
+    "sft": "single-lab-sft-cont/snapshots/step0070-ep1.0 (SFT continued from step 50, not uploaded)",
+    "dpo": "single-lab-v3/snapshots/step0070-ep1.0 (DPO + NLL 50); HF private vinhable/albedo-hessian-backup-20260921 checkpoints/single-lab-v3-step0070-ep1.0-delta-vs-king127"
+  },
+  "manifest_results": {
+    "dpo": {
+      "tie": 42,
+      "loss": 31,
+      "win": 23,
+      "null": 4
+    },
+    "sft": {
+      "tie": 23,
+      "loss": 50,
+      "win": 24,
+      "null": 3
+    }
+  },
+  "headline": {
+    "king": {
+      "local_rejudge_mean": 0.7967,
+      "production_mean": 0.7942,
+      "rejudge_minus_production_mean": 0.0017,
+      "unscored_readings": 5
+    },
+    "dpo": {
+      "tasks_complete": 96,
+      "rollouts": 200,
+      "unscored_readings": 6,
+      "mean": 0.7963,
+      "delta_vs_king_local": -0.0005,
+      "delta_ci95": [
+        -0.0245,
+        0.0254
+      ],
+      "delta_vs_king_production": -0.0012,
+      "wins_ties_losses_0.05": [
+        23,
+        42,
+        31
+      ],
+      "by_phase": {
+        "cold": -0.0083,
+        "pre_edit": 0.0648,
+        "at_edit": -0.0219
+      },
+      "truncated_rollouts": 1,
+      "abandoned_rollouts": 0,
+      "amputated_rollouts": 0,
+      "retry_feedbacks": 22,
+      "mean_assistant_turns": 12.16
+    },
+    "sft": {
+      "tasks_complete": 97,
+      "rollouts": 200,
+      "unscored_readings": 4,
+      "mean": 0.737,
+      "delta_vs_king_local": -0.0581,
+      "delta_ci95": [
+        -0.0954,
+        -0.023
+      ],
+      "delta_vs_king_production": -0.0586,
+      "wins_ties_losses_0.05": [
+        24,
+        23,
+        50
+      ],
+      "by_phase": {
+        "cold": -0.073,
+        "pre_edit": 0.0155,
+        "at_edit": -0.0624
+      },
+      "truncated_rollouts": 0,
+      "abandoned_rollouts": 0,
+      "amputated_rollouts": 0,
+      "retry_feedbacks": 24,
+      "mean_assistant_turns": 12.74
+    }
+  },
+  "unscored_readings": 15
+}

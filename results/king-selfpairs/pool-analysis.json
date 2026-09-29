@@ -1,0 +1,226 @@
+{
+ "crawl": "E:\\albedo-storage-temp\\raw-rollouts-graded-20260927",
+ "king_versions": {
+  "127": 3333
+ },
+ "thresholds": {
+  "capable": 0.85,
+  "margin": 0.2
+ },
+ "load_counts": {
+  "rollout_unusable:king": 107,
+  "rollout_unusable:challenger": 106,
+  "skip:fewer_than_2_king": 67
+ },
+ "used_samples": 420,
+ "all": {
+  "units": 3333,
+  "unique_samples": 3314,
+  "king_mean": 0.7844,
+  "king_best_of_2": 0.8466,
+  "best_of_4_with_challenger": 0.8853,
+  "king_pairs_by_margin": {
+   ">=0.1": 1345,
+   ">=0.15": 949,
+   ">=0.2": 678,
+   ">=0.3": 350,
+   ">=0.4": 194
+  },
+  "groups": {
+   "A": {
+    "units": 2051,
+    "share": 0.615,
+    "king_mean": 0.889,
+    "king_best": 0.952,
+    "best_of_4": 0.962,
+    "pool_headroom_to_king_best": 0.0386,
+    "pool_headroom_to_best_of_4": 0.0449
+   },
+   "B": {
+    "units": 255,
+    "share": 0.077,
+    "king_mean": 0.537,
+    "king_best": 0.707,
+    "best_of_4": 0.767,
+    "pool_headroom_to_king_best": 0.013,
+    "pool_headroom_to_best_of_4": 0.0176
+   },
+   "C1": {
+    "units": 159,
+    "share": 0.048,
+    "king_mean": 0.504,
+    "king_best": 0.539,
+    "best_of_4": 0.877,
+    "pool_headroom_to_king_best": 0.0017,
+    "pool_headroom_to_best_of_4": 0.0178
+   },
+   "C2": {
+    "units": 868,
+    "share": 0.26,
+    "king_mean": 0.661,
+    "king_best": 0.696,
+    "best_of_4": 0.741,
+    "pool_headroom_to_king_best": 0.009,
+    "pool_headroom_to_best_of_4": 0.0206
+   }
+  },
+  "groups_by_phase": {
+   "at_edit": {
+    "A": 356,
+    "C2": 162,
+    "B": 48,
+    "C1": 27,
+    "total": 593
+   },
+   "cold": {
+    "A": 1455,
+    "C2": 597,
+    "B": 169,
+    "C1": 105,
+    "total": 2326
+   },
+   "pre_edit": {
+    "C2": 109,
+    "A": 240,
+    "C1": 27,
+    "B": 38,
+    "total": 414
+   }
+  },
+  "groups_by_source": {
+   "mini-coder": {
+    "A": 1048,
+    "C2": 589,
+    "C1": 103,
+    "B": 135,
+    "total": 1875
+   },
+   "mini-coder-rs": {
+    "B": 15,
+    "A": 54,
+    "C2": 19,
+    "C1": 5,
+    "total": 93
+   },
+   "open-swe-traces": {
+    "A": 848,
+    "C2": 241,
+    "B": 97,
+    "C1": 45,
+    "total": 1231
+   },
+   "swe-hero": {
+    "A": 101,
+    "C2": 19,
+    "B": 8,
+    "C1": 6,
+    "total": 134
+   }
+  }
+ },
+ "unused": {
+  "units": 2910,
+  "unique_samples": 2894,
+  "king_mean": 0.8115,
+  "king_best_of_2": 0.875,
+  "best_of_4_with_challenger": 0.9031,
+  "king_pairs_by_margin": {
+   ">=0.1": 1185,
+   ">=0.15": 841,
+   ">=0.2": 603,
+   ">=0.3": 321,
+   ">=0.4": 182
+  },
+  "groups": {
+   "A": {
+    "units": 1959,
+    "share": 0.673,
+    "king_mean": 0.888,
+    "king_best": 0.951,
+    "best_of_4": 0.962,
+    "pool_headroom_to_king_best": 0.0425,
+    "pool_headroom_to_best_of_4": 0.0496
+   },
+   "B": {
+    "units": 194,
+    "share": 0.067,
+    "king_mean": 0.555,
+    "king_best": 0.731,
+    "best_of_4": 0.783,
+    "pool_headroom_to_king_best": 0.0117,
+    "pool_headroom_to_best_of_4": 0.0152
+   },
+   "C1": {
+    "units": 70,
+    "share": 0.024,
+    "king_mean": 0.57,
+    "king_best": 0.606,
+    "best_of_4": 0.897,
+    "pool_headroom_to_king_best": 0.0009,
+    "pool_headroom_to_best_of_4": 0.0079
+   },
+   "C2": {
+    "units": 687,
+    "share": 0.236,
+    "king_mean": 0.69,
+    "king_best": 0.725,
+    "best_of_4": 0.77,
+    "pool_headroom_to_king_best": 0.0083,
+    "pool_headroom_to_best_of_4": 0.0189
+   }
+  },
+  "groups_by_phase": {
+   "at_edit": {
+    "A": 340,
+    "C2": 124,
+    "B": 30,
+    "C1": 15,
+    "total": 509
+   },
+   "cold": {
+    "A": 1388,
+    "C2": 479,
+    "B": 131,
+    "C1": 43,
+    "total": 2041
+   },
+   "pre_edit": {
+    "C2": 84,
+    "A": 231,
+    "C1": 12,
+    "B": 33,
+    "total": 360
+   }
+  },
+  "groups_by_source": {
+   "mini-coder": {
+    "A": 1003,
+    "C2": 461,
+    "C1": 50,
+    "B": 97,
+    "total": 1611
+   },
+   "mini-coder-rs": {
+    "B": 13,
+    "A": 54,
+    "C2": 12,
+    "C1": 1,
+    "total": 80
+   },
+   "open-swe-traces": {
+    "A": 808,
+    "C2": 201,
+    "B": 78,
+    "C1": 17,
+    "total": 1104
+   },
+   "swe-hero": {
+    "A": 94,
+    "C2": 13,
+    "B": 6,
+    "C1": 2,
+    "total": 115
+   }
+  }
+ }
+}

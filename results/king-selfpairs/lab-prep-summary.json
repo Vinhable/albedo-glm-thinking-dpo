@@ -1,0 +1,42 @@
+{
+ "args": {
+  "data": "E:\\albedo-storage-temp\\king-selfpairs-20260929\\rows",
+  "lab_dir": "C:\\Users\\VINH\\Desktop\\albedo-lab-dpo",
+  "out": "E:\\albedo-storage-temp\\king-selfpairs-20260929\\lab",
+  "max_tokens": "0",
+  "workers": "12",
+  "limit": "0",
+  "allow_mismatch": "False"
+ },
+ "dev": {
+  "rows": 384,
+  "records": 384,
+  "mismatches": {},
+  "packed": 14457404,
+  "per_turn": 28092988,
+  "targets": 1176277,
+  "turns": 1602,
+  "per_turn_over_packed": 1.943,
+  "longest_packed_side": 60233
+ },
+ "train": {
+  "rows": 3154,
+  "records": 3146,
+  "mismatches": {
+   "RenderError: no turn with thinking": {
+    "count": 8,
+    "first": [
+     "d0df37e1111ef605d92ffff999cc8e13#k3",
+     "1f8a8ab31447c8ea77d6424ab663d525#k1",
+     "f29757145699664afecab747d761d464#k5"
+    ]
+   }
+  },
+  "packed": 117178875,
+  "per_turn": 235295169,
+  "targets": 9696826,
+  "turns": 13557,
+  "per_turn_over_packed": 2.008,
+  "longest_packed_side": 97680
+ }
+}

@@ -25,6 +25,8 @@ DATA="$WORK/data/$DATASET/data"
 RUN="${RUN:-$WORK/runs/$DATASET}"
 TRAIN_ENV="$WORK/venv-train"
 VLLM_ENV="$WORK/venv-vllm"
+LAB_ENV="$WORK/venv-lab"
+LAB="${LAB:-$WORK/lab}"
 GPUS="${GPUS:-8}"
 mkdir -p "$WORK/logs" "$RUN"
 # NCCL >= 2.2x turns NVLink SHARP on by default; VMs without Fabric Manager multicast fail with
@@ -38,7 +40,7 @@ echo "=== $(date -u +%FT%TZ) STAGE=$STAGE DATASET=$DATASET"
 # objective and optimisation (override from the environment)
 TRAIN_ARGS=(
   --beta "${BETA:-0.1}" --agg "${AGG:-mean}" --norm-tokens "${N0:-512}"
-  --label-smoothing "${LS:-0.1}" --nll-weight "${NLL:-0.1}"
+  --label-smoothing "${LS:-0.1}" --nll-weight "${NLL:-0.1}" --dpo-weight "${DPO_WEIGHT:-1}"
   --lr "${LR:-5e-6}" --min-lr-ratio "${MIN_LR_RATIO:-0.1}" --warmup-steps "${WARMUP:-5}" --epochs "${EPOCHS:-2}"
   --rows-per-rank "${ROWS_PER_RANK:-2}" --max-seq-tokens "${MAX_SEQ:-65536}"
   --eval-every "${EVAL_EVERY:-10}" --drift-every "${DRIFT_EVERY:-10}"
@@ -68,7 +70,8 @@ setup)
     # deepspeed ops are JIT and never built here: the optimizer is torch AdamW
     # accelerate: transformers' DeepSpeed integration (HfDeepSpeedConfig) requires it
     uv pip install --python "$TRAIN_ENV/bin/python" "transformers>=5.17" "deepspeed==0.19.7" "accelerate>=1.1.0" \
-      flash-linear-attention safetensors tokenizers jinja2 "huggingface_hub[hf_transfer]" numpy pytest
+      flash-linear-attention safetensors tokenizers jinja2 "huggingface_hub[hf_transfer]" numpy pytest \
+      loguru pydantic pydantic-settings opensearch-py httpx asyncpg  # imports of src/ for STAGE=dedup
   fi
   if [ ! -x "$VLLM_ENV/bin/python" ]; then  # vLLM pins its own torch: separate env
     uv venv --python 3.12 "$VLLM_ENV"
@@ -166,9 +169,80 @@ dedup)
       rm -rf "$model"
       echo "$tag: $(python3 -c "import json,sys; r=json.load(open(sys.argv[1])); print(r['verdict'], 'rel_struct', r['rel_struct'], 'density', r['density'])" "$OUTD/$tag.json" 2>/dev/null)"
     done
-    if [ "$todo" = 0 ] && ! tmux ls 2>/dev/null | grep -q -E "^(sweep|full)-"; then break; fi
+    if [ "$todo" = 0 ] && ! tmux ls 2>/dev/null | grep -q -E "^(sweep|full|ablation)-"; then break; fi
     [ "$todo" = 0 ] && sleep 300
   done
+  ;;
+lab-setup)
+  # the lab trainer (albedo-lab-dpo scripts/lab_train, pushed to $LAB by `machine.sh push-lab`) pins its own
+  # stack: transformers 5.11 internals (model.py), fla-core 0.5.2, Triton 3.7.1 (their setup_trainenv.sh)
+  export PATH="$HOME/.local/bin:$PATH"
+  if [ ! -x "$LAB_ENV/bin/python" ]; then
+    uv venv --python 3.12 "$LAB_ENV"
+    uv pip install --python "$LAB_ENV/bin/python" "torch==2.11.0" --index-url https://download.pytorch.org/whl/cu130
+    uv pip install --python "$LAB_ENV/bin/python" "transformers==5.11.0" safetensors "fla-core==0.5.2" einops numpy \
+      jinja2 tokenizers
+    uv pip install --python "$LAB_ENV/bin/python" --no-deps --reinstall "triton==3.7.1"
+  fi
+  "$LAB_ENV/bin/python" -c "import torch,triton,fla,transformers;print('lab env torch',torch.__version__,'cuda',torch.version.cuda,'triton',triton.__version__,'fla',fla.__version__,'tf',transformers.__version__,'gpus',torch.cuda.device_count())"
+  ;;
+lab-prep)
+  # our rows -> the lab's branch-packed records, token-checked turn by turn against vinhable_dpo_data.py
+  "$LAB_ENV/bin/python" "$CODE/scripts/prep_vinhable_for_lab.py" --data "$DATA" --lab-dir "$LAB" \
+    --out "$WORK/data/$DATASET-lab" --workers "${PREP_WORKERS:-64}"
+  ;;
+lab-nll)
+  # King's per-token NLL on a subset of $DATASET-lab: how far the set can pull the King (dedup-gate proxy).
+  # Run it for DATASET=single too: the GLM set that passed the gate at 1.1x is the yardstick.
+  SUB="$WORK/data/$DATASET-lab-nll"
+  OUT="$WORK/runs/$DATASET-lab-nll"
+  [ -f "$SUB/train.pt" ] || "$LAB_ENV/bin/python" "$CODE/scripts/measure_king_nll.py" subset \
+    --data "$WORK/data/$DATASET-lab" --out "$SUB" --rows "${NLL_ROWS:-300}"
+  export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True"
+  "$LAB_ENV/bin/python" -m torch.distributed.run --standalone --nproc-per-node "$GPUS" "$LAB/scripts/lab_train/train.py" \
+    --model "$KING_DIR" --data "$SUB" --out "$OUT" --mode ref 2>&1 | tee -a "$OUT.log"
+  "$LAB_ENV/bin/python" "$CODE/scripts/measure_king_nll.py" summarize --data "$SUB" --ref "$OUT/ref" \
+    --label "$DATASET" --save "$OUT/nll.json"
+  ;;
+lab-train)
+  # one lab-trainer run with our recipe (16 rows/step, LR 2e-5, 5 warmup, cosine to 0.1, 1 epoch), then the
+  # same thinking check and local dedup gate on each snapshot (full checkpoints, no reassembly needed).
+  # LAB_LOSS=sft: NLL on the chosen turns only; LAB_LOSS=dpo: DPO + NLL (NLL weight 50 = v3).
+  OUT="$WORK/runs/$DATASET-lab-${TAG:-sft}"
+  REF_DIR="$WORK/runs/$DATASET-lab-ref"
+  mkdir -p "$OUT" "$REF_DIR"
+  [ -e "$OUT/ref" ] || ln -s "$REF_DIR" "$OUT/ref"  # reference log-probs shared by every lab run
+  export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True"
+  # SKIP_TRAIN=1: only the checks of an existing run's snapshots
+  [ -n "${SKIP_TRAIN:-}" ] || "$LAB_ENV/bin/python" -m torch.distributed.run --standalone --nproc-per-node "$GPUS" "$LAB/scripts/lab_train/train.py" \
+    --model "${INIT_FROM:-$KING_DIR}" --start-step "${START_STEP:-0}" \
+    --data "$WORK/data/$DATASET-lab" --out "$OUT" --mode train \
+    --loss "${LAB_LOSS:-sft}" --nll-weight "${NLL:-50}" --think-loss-weight 1 \
+    --beta "${BETA:-0.1}" --n0 "${N0:-512}" --label-smoothing "${LS:-0.1}" \
+    --epochs "${EPOCHS:-1}" --pairs-per-step "${PAIRS_PER_STEP:-16}" --lr "${LR:-2e-5}" --warmup "${WARMUP:-5}" \
+    --lr-floor "${MIN_LR_RATIO:-0.1}" --train-families self_attn,linear_attn,shared_expert,norm \
+    --snap-steps "${EXPORT_STEPS:-20,35,50}" --resume-every 0 --dev-every "${EVAL_EVERY:-10}" --dev-subset 100000 \
+    --dev-at-start --gate-pairs 16 --gate-tol "${GATE_TOL:-1e-3}" --opt-host "${OPT_HOST:-0}" --offload-act "${OFFLOAD_ACT:-0}" \
+    --seed 20260927 2>&1 | tee -a "$OUT/train.log"
+  mkdir -p "$OUT/think" "$WORK/runs/dedup"
+  for d in $(ls -d "$OUT"/snapshots/step* 2>/dev/null | grep -v '\.json$' | sort -V); do
+    name="$(basename "$d")"; step="$(echo "$name" | sed 's/^step0*\([0-9]*\).*/\1/')"
+    if grep -q NaN "$d.delta-stats.json" 2>/dev/null; then echo "skip $name: NaN weights"; continue; fi
+    [ -f "$OUT/think/step$step.summary.json" ] || "$VLLM_ENV/bin/python" "$CODE/scripts/thinking_check_vllm.py" \
+      --model "$d" --label "step$step" --data "$DATA" --out "$OUT/think" || echo "thinking check failed for $name"
+    tag="$DATASET-lab-${TAG:-sft}-step$step"
+    [ -f "$WORK/runs/dedup/$tag.json" ] || (cd "$CODE" && PYTHONPATH=src "$TRAIN_ENV/bin/python" \
+      scripts/check_dedup_gate_local.py --candidate "$d" --king "$KING_DIR" --seed-model "$WORK/models/genesis" \
+      --device cuda --report "$WORK/runs/dedup/$tag.json") || echo "dedup check failed for $tag"
+  done
+  ;;
+ablation)
+  # SFT vs DPO+NLL on the same rows, same LR, steps and seed: only the DPO term differs.
+  # sft = NLL on the chosen turns only (--dpo-weight 0); v3 = the 2026-09-28 recipe (DPO + NLL 50).
+  [ -f "$WORK/runs/$DATASET/reference.jsonl" ] || STAGE=reference bash "$0"
+  COMMON=(STAGE=sweep EPOCHS=1 LR="${LR:-2e-5}" NLL=50 EXPORT_STEPS="${EXPORT_STEPS:-20,35,50}")
+  env "${COMMON[@]}" TAG=sft DPO_WEIGHT=0 bash "$0" || echo "sft sweep failed"
+  env "${COMMON[@]}" TAG=v3 DPO_WEIGHT=1 bash "$0" || echo "v3 sweep failed"
   ;;
 full)
   # reference -> train -> reassemble -> thinking check, unattended; each step only if the last succeeded

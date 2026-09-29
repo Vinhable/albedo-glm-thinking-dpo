@@ -24,14 +24,14 @@ TINY = Path("E:/albedo-storage-temp/tiny-qwen35moe")
 
 
 def args(**kw):
-    base = dict(beta=0.1, agg="mean", norm_tokens=512.0, label_smoothing=0.1, nll_weight=0.1)
+    base = dict(beta=0.1, agg="mean", norm_tokens=512.0, label_smoothing=0.1, nll_weight=0.1, dpo_weight=1.0)
     base.update(kw)
     return argparse.Namespace(**base)
 
 
-@pytest.mark.parametrize("agg", ["mean", "sum"])
-def test_dpo_derivatives_match_autograd(agg):
-    a = args(agg=agg)
+@pytest.mark.parametrize("agg,dpo_weight", [("mean", 1.0), ("sum", 1.0), ("mean", 0.4), ("mean", 0.0)])
+def test_dpo_derivatives_match_autograd(agg, dpo_weight):
+    a = args(agg=agg, dpo_weight=dpo_weight)
     pc, pr, rc, rr, nc, nr = -120.0, -95.0, -118.0, -99.0, 40, 30
     t = dpo_terms(pc, pr, rc, rr, nc, nr, a)
     x = torch.tensor([pc, pr], dtype=torch.float64, requires_grad=True)
@@ -40,12 +40,14 @@ def test_dpo_derivatives_match_autograd(agg):
     else:
         h = a.beta * ((x[0] - rc) - (x[1] - rr))
     ls = a.label_smoothing
-    loss = -(1 - ls) * torch.nn.functional.logsigmoid(h) - ls * torch.nn.functional.logsigmoid(-h) \
+    loss = a.dpo_weight * (-(1 - ls) * torch.nn.functional.logsigmoid(h) - ls * torch.nn.functional.logsigmoid(-h)) \
         + a.nll_weight * (-x[0] / nc)
     loss.backward()
     assert math.isclose(t["loss"], float(loss), rel_tol=1e-9)
     assert math.isclose(t["coef_chosen"], float(x.grad[0]), rel_tol=1e-9)
     assert math.isclose(t["coef_rejected"], float(x.grad[1]), rel_tol=1e-9)
+    if dpo_weight == 0.0:  # the trainer skips a side whose coefficient is exactly zero
+        assert t["coef_rejected"] == 0.0 and t["coef_chosen"] == -a.nll_weight / nc
 
 
 @pytest.mark.skipif(not TINY.exists(), reason="run scripts/make_tiny_qwen35moe.py first")
