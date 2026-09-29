@@ -434,6 +434,13 @@ We patched the lab's `train.py` in two places:
 The root cause is not known. Suspects are the pinned stack (torch 2.11, transformers 5.11, fla-core 0.5.2,
 triton 3.7.1, `grouped_mm`) or specific batches.
 
+**Weights.** v3 step 70 is public at
+[`vinhable/albedo-king127-v3-step70-delta`](https://huggingface.co/vinhable/albedo-king127-v3-step70-delta).
+- It holds only the 486 of 1,045 tensors that differ from King CXXVII (2.8 GB), plus `reconstruct.py`.
+- To rebuild: download the King at revision `e920362b`, then run `python reconstruct.py <king_dir> . <out>
+  --verify-base`. The round trip was verified on all tensors and config files.
+- The SFT checkpoint was not kept.
+
 **Duel.** `scripts/duel_checkpoints_vs_king.py` ran production's turn loop against each checkpoint:
 - **Tasks:** 100 held-out graded tasks in production's phase mix (cold 65, pre_edit 15, at_edit 20), with
   production horizons (62 tasks at 12 turns, 38 at 16).
