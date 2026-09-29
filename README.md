@@ -20,9 +20,17 @@ Numbers are **measured** unless marked otherwise. All scores are on the graded A
 >
 > §7.4–7.6 propose a new data direction: **King self-improvement** (best-vs-worst King pairs, published as
 > [`vinhable/vinhable_king_selfpairs`](https://huggingface.co/datasets/vinhable/vinhable_king_selfpairs)),
-> plus **hint-guided King regeneration** for the tasks where the King is systematically weak. The duel
-> rollouts are public:
-> [`vinhable/albedo_duel_step70_vs_king127`](https://huggingface.co/datasets/vinhable/albedo_duel_step70_vs_king127).
+> plus **hint-guided King regeneration** for the tasks where the King is systematically weak.
+>
+> Everything is public:
+>
+> | What | Where |
+> |---|---|
+> | New dataset (King best vs worst) | [`vinhable/vinhable_king_selfpairs`](https://huggingface.co/datasets/vinhable/vinhable_king_selfpairs) |
+> | Duel rollouts, scores, and the 100-task duel input to re-run the same duel | [`vinhable/albedo_duel_step70_vs_king127`](https://huggingface.co/datasets/vinhable/albedo_duel_step70_vs_king127) (`evaluation/duel-input.jsonl`) |
+> | v3 step 70 weights (changed tensors vs King CXXVII + `reconstruct.py`) | [`vinhable/albedo-king127-v3-step70-delta`](https://huggingface.co/vinhable/albedo-king127-v3-step70-delta) |
+> | Previous GLM datasets | [`vinhable/vinhable_single`](https://huggingface.co/datasets/vinhable/vinhable_single), [`vinhable/vinhable_double`](https://huggingface.co/datasets/vinhable/vinhable_double) |
+> | Code | this repo, an overlay on upstream `e638fdc` (§6) |
 
 ---
 
@@ -429,7 +437,11 @@ Two trainer incidents:
 We patched the lab's `train.py` in two places:
 1. A NaN guard: `if math.isfinite(gn): opt.step()`, otherwise log the batch and skip the step on every
    rank.
-2. `--start-step` to resume the schedule from a snapshot.
+2. `--start-step` to resume the schedule from a snapshot:
+   `if args.start_step and not step: step, epoch, start_b = args.start_step, args.start_step // steps_per_epoch, args.start_step % steps_per_epoch`.
+
+Our `lab-train` stage passes `--start-step`. Apply patch 2 to your `train.py`, or drop that flag from the
+stage.
 
 The root cause is not known. Suspects are the pinned stack (torch 2.11, transformers 5.11, fla-core 0.5.2,
 triton 3.7.1, `grouped_mm`) or specific batches.
@@ -575,7 +587,18 @@ public, built by `scripts/build_king_selfpairs.py`.
 
      Each run does a reference pass on a 300-row subset, then reports per-token NLL (all / thinking /
      reply) for each side. The yardstick is `single`: the GLM set whose training passed the gate at only
-     1.1×. Run `lab-prep` first; `ops/vinhable-dpo/machine.sh push-data` puts the rows on the box.
+     1.1×.
+
+     The stages read rows from `$WORK/data/$DATASET/data/{train,dev}.jsonl`, and `lab-prep` must run first:
+
+     ```
+     hf download vinhable/vinhable_king_selfpairs --repo-type dataset --local-dir $WORK/data/kingself
+     hf download vinhable/vinhable_single        --repo-type dataset --local-dir $WORK/data/single
+     STAGE=lab-prep DATASET=kingself bash scripts/run_vinhable_dpo_8xh200.sh   # then the same for single
+     ```
+
+     The `lab-*` stages expect the lab trainer at `$WORK/lab` and the King at `$WORK/models/king127`.
+     Override them with `LAB=` and `KING_DIR=`.
   2. **Short train plus local dedup** (`check_dedup_gate_local.py`) before any duel.
 - If the pull is too weak, the levers are:
   - more directed steps: more pairs at margin ≥ 0.15 (841 available), or a second epoch;
@@ -643,8 +666,14 @@ $2–3 and about 30 minutes; 500 tasks × 2 rollouts is about $50.
    - Recipe: v3 on `vinhable_king_selfpairs` (DPO + NLL, lab trainer). There are about 197 steps per epoch
      at 16 rows.
    - Snapshots at several steps, each with the local dedup and the thinking check.
-   - Then duel the best snapshot on the same held-out 100 tasks: `duel_checkpoints_vs_king.py run` on the
-     existing `duel-input.jsonl`. The self-pairs already exclude those tasks.
+   - Then duel the best snapshot on the same held-out 100 tasks. The self-pairs already exclude them, so
+     the result compares directly with §7.1:
+     1. Put `evaluation/duel-input.jsonl` from the duel dataset in an output directory `OUT`.
+     2. Run `duel_checkpoints_vs_king.py run --out OUT --policy NAME=URL --generate-only`, where URL is an
+        OpenAI-compatible completions server of the checkpoint with served model name `candidate`.
+     3. Run `duel_checkpoints_vs_king.py score --out OUT`.
+     - The script needs an OpenRouter key file (`--key-file`) and the local grounding service (§2.2).
+       Cost: about $11 per 200 rollouts (simulator plus judge), plus about $4 to re-judge the King's 200.
 3. **Direction 2 pilot.**
    - First, no API: classify C2 tasks by lost question tags (behaviour vs knowledge).
    - Then 20 C2 tasks, measuring: hinted vs unhinted King score, pass rate of the evidence filter, and the
